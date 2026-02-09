@@ -8,19 +8,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
+// Organism represents a single node in the bio tree
 type Organism struct {
 	ID        int       `json:"id"`
 	Fertility float64   `json:"fertility"`
 	Children  []Organism `json:"children"`
 }
 
+// Request body for generating children
 type GenerateRequest struct {
 	ParentFertility float64 `json:"parent_fertility"`
 }
 
 var idCounter = 1
+
+// Use local RNG instance instead of global rand
+// so it can be controlled or replaced later if needed
 var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
+
+// generateChildren creates child organisms based on parent fertility.
+// It tries up to 10 times and stops when a reproduction attempt fails.
 func generateChildren(parentFertility float64) []Organism {
 	children := []Organism{}
 
@@ -44,6 +53,7 @@ func generateChildren(parentFertility float64) []Organism {
 
 			children = append(children, child)
 		} else {
+			// stop when one attempt fails
 			break
 		}
 	}
