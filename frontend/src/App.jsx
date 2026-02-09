@@ -3,27 +3,23 @@ import axios from "axios"
 
 function TreeNode({ node, onGenerate }) {
   return (
-    <div className="ml-6 mt-3 relative">
-      <div className="absolute -left-3 top-0 bottom-0 w-px bg-gray-300"></div>
-
-      <div className="bg-white shadow-sm border rounded-lg px-4 py-2 flex items-center justify-between hover:shadow-md transition">
-        <div className="text-sm">
-          <span className="font-semibold">ID:</span> {node.id}
-          <span className="ml-3 font-semibold">Fertility:</span>{" "}
-          <span className="text-blue-600">
-            {node.fertility.toFixed(4)}
-          </span>
+    <div className="ml-6 mt-2 border-l pl-3">
+      <div className="flex items-center gap-4 text-sm">
+        <div>
+          <span className="font-medium">ID:</span> {node.id}
+          <span className="ml-3 font-medium">Fertility:</span>{" "}
+          {node.fertility.toFixed(4)}
         </div>
 
         <button
           onClick={() => onGenerate(node)}
-          className="ml-4 px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600"
+          className="text-xs text-blue-600 hover:underline"
         >
-          Generate
+          generate
         </button>
       </div>
 
-      <div className="mt-2">
+      <div className="mt-1">
         {node.children.map(child => (
           <TreeNode
             key={child.id}
@@ -40,7 +36,7 @@ export default function App() {
   const [fertility, setFertility] = useState(50)
   const [root, setRoot] = useState(null)
 
-  // Create the root and immediately generate its first children
+  // Create the root and immediately generate its first generation
   const addRoot = async () => {
     const rootNode = {
       id: 1,
@@ -56,7 +52,7 @@ export default function App() {
     setRoot(rootNode)
   }
 
-  // Recursively create a new tree with updated children
+  // Create a new tree with updated children (immutable update)
   const updateNode = (current, targetId, newChildren) => {
     if (current.id === targetId) {
       return {
@@ -73,7 +69,7 @@ export default function App() {
     }
   }
 
-  // Generate children for any node
+  // Generate children for any selected node
   const generateChildren = async (node) => {
     const res = await axios.post("http://localhost:8080/api/generate-organism", {
       parent_fertility: node.fertility
@@ -84,29 +80,37 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-2xl font-bold mb-4 text-green-600">
-          🌱 Bio-Tree Simulator
-        </h2>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-xl font-semibold mb-4">
+          Bio Tree Simulator
+        </h1>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex items-center gap-2 mb-6">
+          <label className="text-sm text-gray-600">
+            Initial fertility
+          </label>
+
           <input
             type="number"
             value={fertility}
             onChange={e => setFertility(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-32 focus:ring focus:ring-green-200 outline-none"
+            className="border px-2 py-1 w-28 text-sm rounded"
           />
 
           <button
             onClick={addRoot}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-gray-800 text-white px-3 py-1 text-sm rounded hover:bg-gray-700"
           >
-            Add Root
+            Add root
           </button>
         </div>
 
-        {root && <TreeNode node={root} onGenerate={generateChildren} />}
+        {root && (
+          <div className="bg-white border p-4">
+            <TreeNode node={root} onGenerate={generateChildren} />
+          </div>
+        )}
       </div>
     </div>
   )
