@@ -40,25 +40,47 @@ export default function App() {
   const [fertility, setFertility] = useState(50)
   const [root, setRoot] = useState(null)
 
-  // Create initial root node on the client side
-  const addRoot = () => {
-    setRoot({
+  // Create the root and immediately generate its first children
+  const addRoot = async () => {
+    const rootNode = {
       id: 1,
       fertility: Number(fertility),
       children: []
+    }
+
+    const res = await axios.post("http://localhost:8080/api/generate-organism", {
+      parent_fertility: rootNode.fertility
     })
+
+    rootNode.children = res.data
+    setRoot(rootNode)
   }
 
-  // Ask backend to generate children for a specific node
+  // Recursively create a new tree with updated children
+  const updateNode = (current, targetId, newChildren) => {
+    if (current.id === targetId) {
+      return {
+        ...current,
+        children: newChildren
+      }
+    }
+
+    return {
+      ...current,
+      children: current.children.map(child =>
+        updateNode(child, targetId, newChildren)
+      )
+    }
+  }
+
+  // Generate children for any node
   const generateChildren = async (node) => {
     const res = await axios.post("http://localhost:8080/api/generate-organism", {
       parent_fertility: node.fertility
     })
 
-    node.children = res.data
-
-    // trigger re-render
-    setRoot({ ...root })
+    const newTree = updateNode(root, node.id, res.data)
+    setRoot(newTree)
   }
 
   return (
@@ -84,11 +106,7 @@ export default function App() {
           </button>
         </div>
 
-        {root && (
-          <div>
-            <TreeNode node={root} onGenerate={generateChildren} />
-          </div>
-        )}
+        {root && <TreeNode node={root} onGenerate={generateChildren} />}
       </div>
     </div>
   )
