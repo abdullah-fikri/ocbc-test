@@ -40,6 +40,7 @@ export default function App() {
   const [fertility, setFertility] = useState(50)
   const [root, setRoot] = useState(null)
 
+  // Create initial root node on the client side
   const addRoot = () => {
     setRoot({
       id: 1,
@@ -48,12 +49,15 @@ export default function App() {
     })
   }
 
+  // Ask backend to generate children for a specific node
   const generateChildren = async (node) => {
     const res = await axios.post("http://localhost:8080/api/generate-organism", {
       parent_fertility: node.fertility
     })
 
     node.children = res.data
+
+    // trigger re-render
     setRoot({ ...root })
   }
 
